@@ -6,7 +6,6 @@ To get started, see the following example:
 package main
 
 import (
-    "fmt"
     "os"
 
     "github.com/dazeus/dazeus-go"
@@ -24,8 +23,8 @@ func main() {
     }
 
     _, err = dz.Subscribe(dazeus.EventPrivMsg, func(evt dazeus.Event, replier dazeus.Replier) {
-		replier(evt.Params[3], dazeus.ReplyMessage, false)
-	})
+        replier(evt.Params[3], dazeus.ReplyMessage, false)
+    })
     if err != nil {
         panic(err)
     }
