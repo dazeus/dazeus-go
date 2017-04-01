@@ -11,27 +11,8 @@ import (
 	"strings"
 )
 
-type replyFunction string
-
-const (
-	// ReplyMessage indicates replying with a message
-	ReplyMessage replyFunction = "message"
-
-	// ReplyAction indicates replying with a ctcp action
-	ReplyAction replyFunction = "action"
-
-	// ReplyCtcpReply indicates replying with a ctcp reply
-	ReplyCtcpReply replyFunction = "ctcp_reply"
-
-	// ReplyNotice indicates replying with a notice
-	ReplyNotice replyFunction = "notice"
-)
-
 // Message is a message as send by or received from the core.
 type Message map[string]interface{}
-
-// Replier is a function that can be used to respond to an event.
-type Replier func(string, replyFunction, bool) error
 
 // listener stores a listener internally in the plugin
 type listener struct {
@@ -41,7 +22,7 @@ type listener struct {
 }
 
 // Handler defines the function type for registering a callback
-type Handler func(Event, Replier)
+type Handler func(Event)
 
 // ListenerHandle is used to register and unregister event callbacks
 type ListenerHandle int
@@ -513,8 +494,8 @@ func (dazeus *DaZeus) Names(network string, channel string) error {
 	return err
 }
 
-// ReplyMessage replies with a normal message to the correct channel.
-func (dazeus *DaZeus) ReplyMessage(network string, channel string, sender string, message string, highlight bool) error {
+// Reply replies with a normal message to the correct channel.
+func (dazeus *DaZeus) Reply(network string, channel string, sender string, message string, highlight bool) error {
 	nick, err := dazeus.Nick(network)
 	if err != nil {
 		return err

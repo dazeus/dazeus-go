@@ -59,30 +59,53 @@ const (
 
 // Event represents an event message
 type Event struct {
-	Event  eventType
-	Params []string
+	Event   eventType
+	Params  []string
+	DaZeus  *DaZeus
+	Network string
+	Channel string
+	Sender  string
+	Command string
+}
+
+// Reply allows an event handler to respond to the event with a message
+func (event *Event) Reply(message string, highlight bool) error {
+	return event.DaZeus.Reply(event.Network, event.Channel, event.Sender, message, highlight)
+}
+
+// ReplyAction allows an event handler to respond to the event with a ctcp action
+func (event *Event) ReplyAction(message string) error {
+	return event.DaZeus.ReplyAction(event.Network, event.Channel, event.Sender, message)
+}
+
+// ReplyNotice allows an event handler to respond to the event with a notice
+func (event *Event) ReplyNotice(message string, highlight bool) error {
+	return event.DaZeus.ReplyNotice(event.Network, event.Channel, event.Sender, message, highlight)
+}
+
+// ReplyCtcpReply allows an event handler to respond to the event with a ctcp reply
+func (event *Event) ReplyCtcpReply(message string) error {
+	return event.DaZeus.ReplyCtcpReply(event.Network, event.Channel, event.Sender, message)
 }
 
 func handleEvent(dazeus *DaZeus, message Message) error {
-	evt, err := makeEvent(message)
+	evt, err := makeEvent(dazeus, message)
 
 	if err != nil {
 		return err
 	}
 
-	replier := makeReplier(dazeus, evt.Params[0], evt.Params[2], evt.Params[1])
-
 	for _, l := range dazeus.listeners {
-		if l.event == evt.Event && (l.event != EventCommand || l.command == evt.Params[3]) {
+		if l.event == evt.Event && (l.event != EventCommand || l.command == evt.Command) {
 			dazeus.logger.Print("Calling matching event handler")
-			l.handler(evt, replier)
+			l.handler(evt)
 		}
 	}
 
 	return nil
 }
 
-func makeEvent(message Message) (Event, error) {
+func makeEvent(dazeus *DaZeus, message Message) (Event, error) {
 	var event Event
 	messageEventType, ok := message["event"].(string)
 
@@ -96,7 +119,39 @@ func makeEvent(message Message) (Event, error) {
 		return event, err
 	}
 
+	var network, channel, sender string
+	network = params[0]
+
+	if len(params) < 2 {
+		sender = ""
+		channel = ""
+		params = params[1:]
+	} else if len(params) < 3 {
+		sender = params[1]
+		channel = ""
+		params = params[2:]
+	} else {
+		sender = params[1]
+		channel = params[2]
+		params = params[3:]
+	}
+
+	command := ""
+	if messageEventType == "COMMAND" {
+		command = params[0]
+		params = params[1:]
+	}
+
 	evtType := eventType(messageEventType)
-	event = Event{evtType, params}
+	event = Event{
+		Event:   evtType,
+		Params:  params,
+		DaZeus:  dazeus,
+		Network: network,
+		Channel: channel,
+		Sender:  sender,
+		Command: command,
+	}
+
 	return event, nil
 }

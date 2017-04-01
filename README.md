@@ -22,8 +22,8 @@ func main() {
         panic(err)
     }
 
-    _, err = dz.Subscribe(dazeus.EventPrivMsg, func(evt dazeus.Event, replier dazeus.Replier) {
-        replier(evt.Params[3], dazeus.ReplyMessage, false)
+    _, err = dz.Subscribe(dazeus.EventPrivMsg, func(evt dazeus.Event) {
+        evt.Reply(evt.Params[3], false)
     })
     if err != nil {
         panic(err)
