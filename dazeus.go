@@ -332,7 +332,7 @@ func (dazeus *DaZeus) HighlightCharacter() (string, error) {
 }
 
 // GetProperty retrieves a property for a given scope.
-func (dazeus *DaZeus) GetProperty(property string, scope Scope) (string, error) {
+func (dazeus *DaZeus) GetProperty(property string, scope Scope) (interface{}, error) {
 	var err error
 	var resp map[string]interface{}
 
@@ -353,7 +353,7 @@ func (dazeus *DaZeus) GetProperty(property string, scope Scope) (string, error) 
 		return "", err
 	}
 
-	value, ok := resp["value"].(string)
+	value, ok := resp["value"].(interface{})
 
 	if !ok {
 		return "", errors.New("No value found in response")
@@ -363,17 +363,17 @@ func (dazeus *DaZeus) GetProperty(property string, scope Scope) (string, error) 
 }
 
 // SetProperty sets a property to a string value for a given Scope.
-func (dazeus *DaZeus) SetProperty(property string, value string, scope Scope) (err error) {
+func (dazeus *DaZeus) SetProperty(property string, value interface{}, scope Scope) (err error) {
 	if scope.IsAll() {
 		_, err = writeForSuccessResponse(dazeus, map[string]interface{}{
 			"do":     "property",
-			"params": []string{"set", property, value},
+			"params": []interface{}{"set", property, value},
 		})
 	} else {
 		_, err = writeForSuccessResponse(dazeus, map[string]interface{}{
 			"do":     "property",
 			"scope":  scope.ToSlice(),
-			"params": []string{"set", property, value},
+			"params": []interface{}{"set", property, value},
 		})
 	}
 
